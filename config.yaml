@@ -1,0 +1,95 @@
+# GNN-BERT Music Context Project Configuration
+# CSE425 / EEE474 / CSE715
+
+project:
+  name: gnn-bert-music-context
+  seed: 42
+  device: auto  # auto | cuda | cpu
+
+data:
+  raw_dir: data/raw
+  processed_dir: data/processed
+  splits_dir: data/splits
+  sample_rate: 22050
+  n_mels: 128
+  n_chroma: 12
+  segment_duration: 5.0  # seconds
+  similarity_threshold: 0.7
+  max_text_length: 128
+  num_tags: 50  # top-50 MagnaTagATune tags
+
+datasets:
+  magnatagatune:
+    enabled: true
+    path: data/raw/magnatagatune
+    annotations: data/raw/magnatagatune/annotations_final.csv
+  gtzan:
+    enabled: true
+    path: data/raw/gtzan
+    genres: [blues, classical, country, disco, hiphop, jazz, metal, pop, reggae, rock]
+  fma:
+    enabled: false
+    subset: small
+    path: data/raw/fma
+  musiccaps:
+    enabled: false
+    path: data/raw/musiccaps
+  deam:
+    enabled: false
+    path: data/raw/deam
+
+model:
+  bert:
+    name: distilbert-base-uncased
+    freeze: false
+    hidden_dim: 768
+  gnn:
+    type: graphsage  # graphsage | gat
+    hidden_dim: 128
+    num_layers: 3
+    dropout: 0.3
+  fusion:
+    type: cross_attention  # concat | cross_attention
+    hidden_dim: 256
+    num_heads: 4
+  cnn_baseline:
+    channels: [32, 64, 128]
+    kernel_size: 3
+
+training:
+  task1_bert:
+    epochs: 10
+    batch_size: 16
+    lr: 2.0e-5
+    weight_decay: 0.01
+  task2_gnn:
+    epochs: 30
+    batch_size: 32
+    lr: 1.0e-3
+    weight_decay: 1.0e-4
+  task2_cnn:
+    epochs: 30
+    batch_size: 32
+    lr: 1.0e-3
+  task3_fusion:
+    epochs: 20
+    batch_size: 8
+    lr: 1.0e-4
+    alpha_emotion: 0.5
+    beta_emotion: 0.5
+  task4_contrastive:
+    epochs: 15
+    batch_size: 32
+    lr: 1.0e-4
+    temperature: 0.07
+
+evaluation:
+  metrics: [macro_f1, micro_f1, auc_pr]
+  retrieval_k: [1, 5, 10]
+  tsne_perplexity: 30
+
+output:
+  results_dir: results
+  checkpoints_dir: results/checkpoints
+  plots_dir: results/plots
+  retrieval_dir: results/retrieval_examples
